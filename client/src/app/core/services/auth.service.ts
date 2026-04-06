@@ -24,9 +24,7 @@ export class AuthService {
   }
 
   signup(data: any) {
-    return this.http.post<any>(`${this.api}/auth/signup`, data).pipe(
-      tap(res => { localStorage.setItem('cc_token', res.token); this.user.set(res.user); })
-    );
+    return this.http.post<any>(`${this.api}/auth/signup`, data);
   }
 
   login(data: any) {

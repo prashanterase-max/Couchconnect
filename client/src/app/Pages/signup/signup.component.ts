@@ -83,7 +83,7 @@ export class SignupComponent {
   submit() {
     this.error = ''; this.loading = true;
     this.auth.signup({ name: this.name, email: this.email, password: this.password, role: this.role }).subscribe({
-      next: () => this.router.navigate(['/home']),
+      next: () => this.router.navigate(['/login']),
       error: (e) => { this.error = e.error?.message || 'Signup failed'; this.loading = false; }
     });
   }
