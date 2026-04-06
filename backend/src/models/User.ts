@@ -9,6 +9,7 @@ export interface IUser extends Document {
   isVerified: boolean;
   verificationStatus: 'none' | 'pending' | 'approved' | 'rejected';
   isBlacklisted: boolean;
+  lastSeen: Date;
   createdAt: Date;
   comparePassword(candidate: string): Promise<boolean>;
 }
@@ -21,6 +22,7 @@ const UserSchema = new Schema<IUser>({
   isVerified: { type: Boolean, default: false },
   verificationStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
   isBlacklisted: { type: Boolean, default: false },
+  lastSeen: { type: Date, default: Date.now },
 }, { timestamps: true });
 
 UserSchema.pre('save', async function () {

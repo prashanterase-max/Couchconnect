@@ -87,7 +87,7 @@ import { Router } from '@angular/router';
               <div *ngIf="!p.photo" class="card-avatar-init" [style.background]="avatarGradient(p.name)">
                 {{p.name?.charAt(0)?.toUpperCase()||'?'}}
               </div>
-              <span class="online-dot"></span>
+              <span *ngIf="isOnline(p)" class="online-dot"></span>
             </div>
 
             <!-- Info -->
@@ -119,9 +119,12 @@ import { Router } from '@angular/router';
       <!-- List view -->
       <div *ngIf="!loading && viewMode==='list'" class="list-view">
         <div *ngFor="let p of filtered" class="list-card" (click)="goProfile(p)">
-          <img *ngIf="p.photo" [src]="p.photo" class="list-avatar" alt="avatar" />
-          <div *ngIf="!p.photo" class="list-avatar list-avatar-init" [style.background]="avatarGradient(p.name)">
-            {{p.name?.charAt(0)?.toUpperCase()||'?'}}
+          <div style="position:relative;flex-shrink:0;">
+            <img *ngIf="p.photo" [src]="p.photo" class="list-avatar" alt="avatar" />
+            <div *ngIf="!p.photo" class="list-avatar list-avatar-init" [style.background]="avatarGradient(p.name)">
+              {{p.name?.charAt(0)?.toUpperCase()||'?'}}
+            </div>
+            <span *ngIf="isOnline(p)" style="position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:#22c55e;border:2px solid #fff;display:block;"></span>
           </div>
           <div class="list-info">
             <div class="list-name">{{p.name || 'User'}}</div>
@@ -350,6 +353,11 @@ export class LocalsListComponent implements OnInit {
   }
 
   goProfile(p: any) { this.router.navigate(['/profile', p.userId]); }
+
+  isOnline(p: any): boolean {
+    if (!p.lastSeen) return false;
+    return (Date.now() - new Date(p.lastSeen).getTime()) < 5 * 60 * 1000;
+  }
 
   chat(p: any) {
     const myId = this.auth.user()?._id;

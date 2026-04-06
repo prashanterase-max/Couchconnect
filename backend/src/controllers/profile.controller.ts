@@ -44,7 +44,14 @@ export const getProfileById = async (req: AuthRequest, res: Response) => {
 export const listProfiles = async (_req: AuthRequest, res: Response) => {
   try {
     const profiles = await Profile.find({ role: { $ne: 'admin' } }).select('-posts').lean();
-    res.json(profiles);
+    // attach lastSeen from User model
+    const User = (await import('../models/User')).default;
+    const userIds = profiles.map(p => p.userId);
+    const users = await User.find({ _id: { $in: userIds } }).select('lastSeen').lean();
+    const lastSeenMap: Record<string, Date> = {};
+    users.forEach((u: any) => { lastSeenMap[String(u._id)] = u.lastSeen; });
+    const result = profiles.map(p => ({ ...p, lastSeen: lastSeenMap[String(p.userId)] || null }));
+    res.json(result);
   } catch (err: any) {
     res.status(500).json({ message: err.message });
   }
