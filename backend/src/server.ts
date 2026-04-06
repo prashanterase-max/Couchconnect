@@ -23,7 +23,17 @@ const app = express();
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
-    if (origin.includes('localhost') || origin.includes('trycloudflare.com')) return cb(null, true);
+    const allowed = [
+      'http://localhost:4200',
+      'https://couchconnect.vercel.app',
+    ];
+    if (
+      allowed.includes(origin) ||
+      origin.includes('localhost') ||
+      origin.includes('trycloudflare.com') ||
+      origin.includes('vercel.app') ||
+      origin.includes('onrender.com')
+    ) return cb(null, true);
     cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
