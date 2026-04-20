@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://couchconnect.onrender.com/api'
+  apiUrl: 'https://couchconnect-1.onrender.com/api'
 };
