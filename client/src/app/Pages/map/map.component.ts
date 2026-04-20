@@ -281,6 +281,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     // Load profile list immediately — don't wait for map idle
     // (already called in ngOnInit, just place markers here)
     this.map.once('idle', () => {
+      this.forceEnglishLabels();
       if (this.locals.length > 0) {
         this.placeMarkers();
       } else {
@@ -298,8 +299,23 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.currentStyle = s.id;
     this.map.setStyle(s.url);
     this.map.once('idle', () => {
+      this.forceEnglishLabels();
       this.placeMarkers();
       if (this.is3D) this.add3DBuildings();
+    });
+  }
+
+  private forceEnglishLabels() {
+    const style = this.map.getStyle();
+    if (!style?.layers) return;
+    style.layers.forEach((layer: any) => {
+      if (layer.type !== 'symbol') return;
+      const textField = layer?.layout?.['text-field'];
+      if (!textField) return;
+      // Replace any name expression with name:en fallback to name
+      this.map.setLayoutProperty(layer.id, 'text-field', [
+        'coalesce', ['get', 'name:en'], ['get', 'name']
+      ]);
     });
   }
 
@@ -447,10 +463,19 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       .then(r => r.json())
       .then((data: any[]) => {
         this.searching = false;
-        if (data[0]) {
+        if (!data[0]) return;
+        const d = data[0];
+        const bb = d.boundingbox; // [minLat, maxLat, minLon, maxLon]
+        if (bb) {
+          // Fit to the bounding box so countries zoom out, cities zoom in naturally
+          this.map.fitBounds(
+            [[parseFloat(bb[2]), parseFloat(bb[0])], [parseFloat(bb[3]), parseFloat(bb[1])]],
+            { padding: 60, duration: 2000, pitch: this.is3D ? 55 : 0, bearing: this.is3D ? -20 : 0, maxZoom: 12 }
+          );
+        } else {
           this.map.flyTo({
-            center: [parseFloat(data[0].lon), parseFloat(data[0].lat)],
-            zoom: 13, pitch: this.is3D ? 55 : 30,
+            center: [parseFloat(d.lon), parseFloat(d.lat)],
+            zoom: 10, pitch: this.is3D ? 55 : 0,
             bearing: this.is3D ? -20 : 0, duration: 2000, essential: true,
           });
         }
